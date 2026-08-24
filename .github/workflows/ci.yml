@@ -60,3 +60,20 @@ jobs:
           tags: trilha-worker:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - name: Build imagem do simulador
+        uses: docker/build-push-action@v6
+        with:
+          context: backend
+          target: simulator
+          push: false
+          tags: trilha-simulator:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Build imagem do frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: frontend
+          push: false
+          tags: trilha-frontend:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
