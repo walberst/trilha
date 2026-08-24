@@ -1,0 +1,5 @@
+# Drivers nativos usados apenas em producao (conexao real com Postgres e Kafka).
+# Ficam separados do requirements.txt porque exigem compilacao/wheels nativas por
+# plataforma; os testes rodam contra SQLite e mongomock, entao nao precisam deles.
+psycopg2-binary==2.9.10
+confluent-kafka==2.6.1
