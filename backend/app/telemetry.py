@@ -25,7 +25,9 @@ def configurar_telemetria(app: FastAPI, engine: Engine) -> None:
         logger.info("telemetria_desabilitada")
         return
 
-    provedor = TracerProvider(resource=Resource.create({"service.name": settings.otel_service_name}))
+    provedor = TracerProvider(
+        resource=Resource.create({"service.name": settings.otel_service_name})
+    )
     exportador = OTLPSpanExporter(endpoint=settings.otel_exporter_otlp_endpoint, insecure=True)
     provedor.add_span_processor(BatchSpanProcessor(exportador))
     trace.set_tracer_provider(provedor)

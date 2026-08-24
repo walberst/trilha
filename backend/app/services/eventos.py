@@ -51,7 +51,9 @@ class ResultadoProcessamentoEvento:
         return self.faixa_anterior != self.faixa_nova
 
 
-def _atualizar_bucket_diario(sessao: Session, matricula_id: int, data_evento: dt.date, peso: float) -> None:
+def _atualizar_bucket_diario(
+    sessao: Session, matricula_id: int, data_evento: dt.date, peso: float
+) -> None:
     bucket = sessao.execute(
         select(EngajamentoDiario).where(
             EngajamentoDiario.matricula_id == matricula_id,
@@ -71,6 +73,18 @@ def _podar_buckets_antigos(sessao: Session, matricula_id: int, data_limite: dt.d
             EngajamentoDiario.data < data_limite,
         )
     )
+
+
+def _garantir_aware_utc(momento: dt.datetime) -> dt.datetime:
+    """Alguns backends (SQLite, usado nos testes) nao preservam o fuso
+    horario de um DateTime(timezone=True) na volta do banco: o valor lido
+    vem naive mesmo tendo sido gravado aware. Tratamos naive como UTC de
+    forma consistente para a comparacao abaixo nunca explodir com
+    TypeError independente do banco por tras da sessao.
+    """
+    if momento.tzinfo is None:
+        return momento.replace(tzinfo=dt.UTC)
+    return momento
 
 
 def _somar_janela(sessao: Session, matricula_id: int, data_limite: dt.date) -> float:
@@ -118,11 +132,20 @@ def processar_evento(
     )
 
     _atualizar_bucket_diario(sessao, matricula.id, timestamp_evento.date(), peso)
+    # A sessao roda com autoflush desligado (ver SessionLocal em db/postgres.py),
+    # entao sem este flush explicito a soma abaixo nao enxergaria o incremento
+    # que acabou de ser feito no bucket de hoje: o score ficaria sempre um
+    # evento atrasado em relacao ao que de fato acabou de chegar.
+    sessao.flush()
     data_limite = agora.date() - dt.timedelta(days=settings.janela_frequencia_dias - 1)
     _podar_buckets_antigos(sessao, matricula.id, data_limite)
     soma_pesos_janela = _somar_janela(sessao, matricula.id, data_limite)
 
-    if matricula.ultimo_evento_em is None or timestamp_evento >= matricula.ultimo_evento_em:
+    ultimo_evento_atual = matricula.ultimo_evento_em
+    if ultimo_evento_atual is not None:
+        ultimo_evento_atual = _garantir_aware_utc(ultimo_evento_atual)
+
+    if ultimo_evento_atual is None or timestamp_evento >= ultimo_evento_atual:
         matricula.ultimo_evento_em = timestamp_evento
         matricula.ultimo_evento_tipo = evento.tipo
 

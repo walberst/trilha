@@ -83,7 +83,9 @@ def executar() -> None:
             try:
                 resultado = processar_evento(sessao, colecao_eventos, evento)
             except MatriculaNaoEncontrada:
-                logger.warning("evento_para_matricula_inexistente", matricula_id=evento.matricula_id)
+                logger.warning(
+                    "evento_para_matricula_inexistente", matricula_id=evento.matricula_id
+                )
                 continue
             finally:
                 sessao.close()

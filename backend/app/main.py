@@ -68,5 +68,7 @@ async def tratar_erro_integridade(_request: Request, _erro: IntegrityError) -> J
     # uma condicao de corrida em vez de um 409 de fato acionavel pelo cliente.
     return JSONResponse(
         status_code=409,
-        content=ErroResposta(detalhe="Conflito de dados: recurso ja existe", codigo="conflito_dados").model_dump(),
+        content=ErroResposta(
+            detalhe="Conflito de dados: recurso ja existe", codigo="conflito_dados"
+        ).model_dump(),
     )

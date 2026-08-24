@@ -15,7 +15,12 @@ from app.models.schemas import (
     TurmaSaida,
 )
 from app.services.erros import AlunoJaMatriculado, MatriculaNaoEncontrada, RecursoNaoEncontrado
-from app.services.risco import calcular_score_risco, faixa_de_score, pontuacao_frequencia, pontuacao_recencia
+from app.services.risco import (
+    calcular_score_risco,
+    faixa_de_score,
+    pontuacao_frequencia,
+    pontuacao_recencia,
+)
 
 router = APIRouter(prefix="/matriculas", tags=["matriculas"])
 
@@ -35,7 +40,9 @@ def criar_matricula(
         raise RecursoNaoEncontrado(f"Turma {dados.turma_id} nao encontrada")
 
     existente = sessao.execute(
-        select(Matricula).where(Matricula.aluno_id == dados.aluno_id, Matricula.turma_id == dados.turma_id)
+        select(Matricula).where(
+            Matricula.aluno_id == dados.aluno_id, Matricula.turma_id == dados.turma_id
+        )
     ).scalar_one_or_none()
     if existente is not None:
         raise AlunoJaMatriculado(f"Aluno {dados.aluno_id} ja matriculado na turma {dados.turma_id}")
@@ -81,5 +88,7 @@ def obter_detalhe_aluno(matricula_id: int, sessao: Session = Depends(obter_sessa
         turma=TurmaSaida.model_validate(turma),
         dias_sem_atividade=dias_sem_atividade,
         pontuacao_recencia=pontuacao_recencia(dias_sem_atividade),
-        pontuacao_frequencia=pontuacao_frequencia(matricula.soma_pesos_14d, turma.engajamento_esperado_14d),
+        pontuacao_frequencia=pontuacao_frequencia(
+            matricula.soma_pesos_14d, turma.engajamento_esperado_14d
+        ),
     )

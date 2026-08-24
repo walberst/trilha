@@ -51,5 +51,7 @@ class MetricasMiddleware(BaseHTTPMiddleware):
         requisicoes_total.labels(
             metodo=request.method, rota=rota_template, status=resposta.status_code
         ).inc()
-        duracao_requisicao_segundos.labels(metodo=request.method, rota=rota_template).observe(duracao)
+        duracao_requisicao_segundos.labels(metodo=request.method, rota=rota_template).observe(
+            duracao
+        )
         return resposta

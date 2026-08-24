@@ -20,7 +20,9 @@ def test_criar_aluno_e_matricula(cliente_api):
     _, turma = _criar_curso_turma(cliente_api)
     aluno = _criar_aluno(cliente_api, "Aluno Um", "aluno.um@exemplo.com")
 
-    resposta = cliente_api.post("/matriculas", json={"aluno_id": aluno["id"], "turma_id": turma["id"]})
+    resposta = cliente_api.post(
+        "/matriculas", json={"aluno_id": aluno["id"], "turma_id": turma["id"]}
+    )
     assert resposta.status_code == 201
     matricula = resposta.json()
     # sem nenhum evento ainda, matricula nasce no pior caso das duas componentes
@@ -32,10 +34,14 @@ def test_matricular_o_mesmo_aluno_duas_vezes_e_conflito(cliente_api):
     _, turma = _criar_curso_turma(cliente_api)
     aluno = _criar_aluno(cliente_api, "Aluno Dois", "aluno.dois@exemplo.com")
 
-    primeira = cliente_api.post("/matriculas", json={"aluno_id": aluno["id"], "turma_id": turma["id"]})
+    primeira = cliente_api.post(
+        "/matriculas", json={"aluno_id": aluno["id"], "turma_id": turma["id"]}
+    )
     assert primeira.status_code == 201
 
-    segunda = cliente_api.post("/matriculas", json={"aluno_id": aluno["id"], "turma_id": turma["id"]})
+    segunda = cliente_api.post(
+        "/matriculas", json={"aluno_id": aluno["id"], "turma_id": turma["id"]}
+    )
     assert segunda.status_code == 409
     assert segunda.json()["codigo"] == "aluno_ja_matriculado"
 
@@ -49,7 +55,9 @@ def test_matricular_aluno_inexistente_e_404(cliente_api):
 def test_detalhe_da_matricula_traz_pontuacoes_calculadas(cliente_api):
     _, turma = _criar_curso_turma(cliente_api)
     aluno = _criar_aluno(cliente_api, "Aluno Tres", "aluno.tres@exemplo.com")
-    matricula = cliente_api.post("/matriculas", json={"aluno_id": aluno["id"], "turma_id": turma["id"]}).json()
+    matricula = cliente_api.post(
+        "/matriculas", json={"aluno_id": aluno["id"], "turma_id": turma["id"]}
+    ).json()
 
     resposta = cliente_api.get(f"/matriculas/{matricula['id']}")
     assert resposta.status_code == 200
@@ -71,7 +79,9 @@ def test_listagem_de_alunos_por_risco_e_paginada_e_ordenavel(cliente_api):
         aluno = _criar_aluno(cliente_api, f"Aluno Pag {i}", f"aluno.pag{i}@exemplo.com")
         cliente_api.post("/matriculas", json={"aluno_id": aluno["id"], "turma_id": turma["id"]})
 
-    resposta = cliente_api.get(f"/turmas/{turma['id']}/alunos", params={"tamanho_pagina": 2, "pagina": 1})
+    resposta = cliente_api.get(
+        f"/turmas/{turma['id']}/alunos", params={"tamanho_pagina": 2, "pagina": 1}
+    )
     assert resposta.status_code == 200
     pagina = resposta.json()
     assert pagina["total"] == 3
@@ -79,7 +89,9 @@ def test_listagem_de_alunos_por_risco_e_paginada_e_ordenavel(cliente_api):
     assert len(pagina["itens"]) == 2
     assert pagina["total_paginas"] == 2
 
-    segunda_pagina = cliente_api.get(f"/turmas/{turma['id']}/alunos", params={"tamanho_pagina": 2, "pagina": 2})
+    segunda_pagina = cliente_api.get(
+        f"/turmas/{turma['id']}/alunos", params={"tamanho_pagina": 2, "pagina": 2}
+    )
     assert len(segunda_pagina.json()["itens"]) == 1
 
 

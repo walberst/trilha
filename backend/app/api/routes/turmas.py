@@ -32,7 +32,9 @@ def criar_turma(dados: TurmaCriar, sessao: Session = Depends(obter_sessao)) -> T
 
 
 @router.get("", response_model=list[TurmaSaida])
-def listar_turmas(curso_id: int | None = None, sessao: Session = Depends(obter_sessao)) -> list[Turma]:
+def listar_turmas(
+    curso_id: int | None = None, sessao: Session = Depends(obter_sessao)
+) -> list[Turma]:
     consulta = select(Turma).order_by(Turma.data_inicio.desc())
     if curso_id is not None:
         consulta = consulta.where(Turma.curso_id == curso_id)
@@ -75,13 +77,17 @@ def listar_alunos_por_risco(
     ordenacao = coluna.desc() if direcao == "desc" else coluna.asc()
 
     consulta_base = (
-        select(Matricula, Aluno).join(Aluno, Aluno.id == Matricula.aluno_id).where(Matricula.turma_id == turma_id)
+        select(Matricula, Aluno)
+        .join(Aluno, Aluno.id == Matricula.aluno_id)
+        .where(Matricula.turma_id == turma_id)
     )
 
     total = sessao.execute(select(func.count()).select_from(consulta_base.subquery())).scalar_one()
 
     linhas = sessao.execute(
-        consulta_base.order_by(ordenacao, Matricula.id).offset((pagina - 1) * tamanho_pagina).limit(tamanho_pagina)
+        consulta_base.order_by(ordenacao, Matricula.id)
+        .offset((pagina - 1) * tamanho_pagina)
+        .limit(tamanho_pagina)
     ).all()
 
     itens = [

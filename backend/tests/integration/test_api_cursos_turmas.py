@@ -1,5 +1,7 @@
 def test_fluxo_completo_criar_curso_turma_e_listar(cliente_api):
-    resposta_curso = cliente_api.post("/cursos", json={"nome": "Python Basico", "descricao": "Introdutorio"})
+    resposta_curso = cliente_api.post(
+        "/cursos", json={"nome": "Python Basico", "descricao": "Introdutorio"}
+    )
     assert resposta_curso.status_code == 201
     curso_id = resposta_curso.json()["id"]
 

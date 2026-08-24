@@ -40,7 +40,9 @@ def test_evento_para_matricula_inexistente_leva_erro(sessao_teste, colecao_event
         processar_evento(sessao_teste, colecao_eventos_teste, evento)
 
 
-def test_evento_grava_documento_bruto_no_mongo(sessao_teste, colecao_eventos_teste, matricula_pronta):
+def test_evento_grava_documento_bruto_no_mongo(
+    sessao_teste, colecao_eventos_teste, matricula_pronta
+):
     evento = EventoComportamentoCriar(matricula_id=matricula_pronta.id, tipo="video_assistido")
     processar_evento(sessao_teste, colecao_eventos_teste, evento)
 
@@ -56,17 +58,23 @@ def test_evento_recente_e_frequente_deixa_matricula_em_baixo_risco(
     agora = dt.datetime.now(dt.UTC)
     # engajamento_esperado_14d=20 na turma; 5 provas concluidas (peso 5) = 25, acima do esperado
     for _ in range(5):
-        evento = EventoComportamentoCriar(matricula_id=matricula_pronta.id, tipo="prova_concluida", timestamp=agora)
+        evento = EventoComportamentoCriar(
+            matricula_id=matricula_pronta.id, tipo="prova_concluida", timestamp=agora
+        )
         resultado = processar_evento(sessao_teste, colecao_eventos_teste, evento, agora=agora)
 
     assert resultado.matricula.faixa_risco == "baixo"
     assert resultado.matricula.soma_pesos_14d == 25.0
 
 
-def test_matricula_sem_eventos_recentes_fica_em_alto_risco(sessao_teste, colecao_eventos_teste, matricula_pronta):
+def test_matricula_sem_eventos_recentes_fica_em_alto_risco(
+    sessao_teste, colecao_eventos_teste, matricula_pronta
+):
     agora = dt.datetime.now(dt.UTC)
     evento_antigo = agora - dt.timedelta(days=25)
-    evento = EventoComportamentoCriar(matricula_id=matricula_pronta.id, tipo="login", timestamp=evento_antigo)
+    evento = EventoComportamentoCriar(
+        matricula_id=matricula_pronta.id, tipo="login", timestamp=evento_antigo
+    )
 
     resultado = processar_evento(sessao_teste, colecao_eventos_teste, evento, agora=agora)
 
@@ -75,20 +83,26 @@ def test_matricula_sem_eventos_recentes_fica_em_alto_risco(sessao_teste, colecao
     assert resultado.matricula.faixa_risco == "alto"
 
 
-def test_mudanca_de_faixa_e_sinalizada_corretamente(sessao_teste, colecao_eventos_teste, matricula_pronta):
+def test_mudanca_de_faixa_e_sinalizada_corretamente(
+    sessao_teste, colecao_eventos_teste, matricula_pronta
+):
     agora = dt.datetime.now(dt.UTC)
 
     # matricula comeca em "alto" (default). Um evento forte de hoje deve derrubar para baixo.
     assert matricula_pronta.faixa_risco == "alto"
 
-    evento = EventoComportamentoCriar(matricula_id=matricula_pronta.id, tipo="prova_concluida", timestamp=agora)
+    evento = EventoComportamentoCriar(
+        matricula_id=matricula_pronta.id, tipo="prova_concluida", timestamp=agora
+    )
     resultado = processar_evento(sessao_teste, colecao_eventos_teste, evento, agora=agora)
 
     assert resultado.faixa_anterior == "alto"
     assert resultado.mudou_de_faixa is (resultado.faixa_nova != "alto")
 
 
-def test_buckets_fora_da_janela_de_frequencia_sao_podados(sessao_teste, colecao_eventos_teste, matricula_pronta):
+def test_buckets_fora_da_janela_de_frequencia_sao_podados(
+    sessao_teste, colecao_eventos_teste, matricula_pronta
+):
     agora = dt.datetime.now(dt.UTC)
     evento_fora_da_janela = agora - dt.timedelta(days=20)
     evento = EventoComportamentoCriar(

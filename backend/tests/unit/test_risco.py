@@ -88,7 +88,14 @@ class TestCalcularScoreRisco:
 class TestFaixaDeScore:
     @pytest.mark.parametrize(
         "score,faixa_esperada",
-        [(0.0, "baixo"), (39.9, "baixo"), (40.0, "medio"), (69.9, "medio"), (70.0, "alto"), (100.0, "alto")],
+        [
+            (0.0, "baixo"),
+            (39.9, "baixo"),
+            (40.0, "medio"),
+            (69.9, "medio"),
+            (70.0, "alto"),
+            (100.0, "alto"),
+        ],
     )
     def test_limites_das_faixas(self, score, faixa_esperada):
         assert faixa_de_score(score) == faixa_esperada

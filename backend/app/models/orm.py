@@ -21,14 +21,18 @@ class Curso(Base):
     descricao: Mapped[str | None] = mapped_column(String(1000))
     criado_em: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=agora_utc)
 
-    turmas: Mapped[list["Turma"]] = relationship(back_populates="curso", cascade="all, delete-orphan")
+    turmas: Mapped[list["Turma"]] = relationship(
+        back_populates="curso", cascade="all, delete-orphan"
+    )
 
 
 class Turma(Base):
     __tablename__ = "turmas"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    curso_id: Mapped[int] = mapped_column(ForeignKey("cursos.id", ondelete="CASCADE"), nullable=False)
+    curso_id: Mapped[int] = mapped_column(
+        ForeignKey("cursos.id", ondelete="CASCADE"), nullable=False
+    )
     nome: Mapped[str] = mapped_column(String(200), nullable=False)
     data_inicio: Mapped[dt.date] = mapped_column(Date, nullable=False)
     data_fim: Mapped[dt.date | None] = mapped_column(Date)
@@ -66,8 +70,12 @@ class Matricula(Base):
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    aluno_id: Mapped[int] = mapped_column(ForeignKey("alunos.id", ondelete="CASCADE"), nullable=False)
-    turma_id: Mapped[int] = mapped_column(ForeignKey("turmas.id", ondelete="CASCADE"), nullable=False)
+    aluno_id: Mapped[int] = mapped_column(
+        ForeignKey("alunos.id", ondelete="CASCADE"), nullable=False
+    )
+    turma_id: Mapped[int] = mapped_column(
+        ForeignKey("turmas.id", ondelete="CASCADE"), nullable=False
+    )
     status: Mapped[str] = mapped_column(String(20), default="ativa", nullable=False)
     data_matricula: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=agora_utc)
 
@@ -104,7 +112,9 @@ class EngajamentoDiario(Base):
     """
 
     __tablename__ = "engajamentos_diarios"
-    __table_args__ = (UniqueConstraint("matricula_id", "data", name="uq_engajamento_matricula_dia"),)
+    __table_args__ = (
+        UniqueConstraint("matricula_id", "data", name="uq_engajamento_matricula_dia"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     matricula_id: Mapped[int] = mapped_column(
