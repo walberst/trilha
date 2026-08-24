@@ -26,7 +26,6 @@ async def lifespan(app: FastAPI):
     settings = obter_configuracao()
     criar_schema()
     garantir_indices(obter_banco_mongo())
-    configurar_telemetria(app, engine)
     relay_alertas.iniciar()
     logger.info("aplicacao_iniciada", ambiente=settings.ambiente)
     yield
@@ -40,6 +39,13 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
+# Precisa rodar antes do app comecar a atender requisicoes: instrumentar
+# (o que registra middleware) depois que o Starlette ja montou a stack de
+# middleware (o que acontece assim que o lifespan comeca) derruba a API com
+# "Cannot add middleware after an application has started". Por isso fica
+# aqui, fora do lifespan, junto com o resto da configuracao de middleware.
+configurar_telemetria(app, engine)
 
 app.add_middleware(MetricasMiddleware)
 app.mount("/metrics", make_asgi_app())

@@ -13,7 +13,7 @@ import time
 import structlog
 
 from app.config import obter_configuracao
-from app.db.postgres import SessionLocal
+from app.db.postgres import SessionLocal, criar_schema
 from app.logging_config import configurar_logging
 from app.messaging.producer import ProdutorEventos
 from app.models.orm import Matricula
@@ -38,6 +38,11 @@ def _matriculas_ativas() -> list[int]:
 def executar() -> None:
     configurar_logging()
     settings = obter_configuracao()
+    # O simulador roda como container independente e pode subir antes da API
+    # ou do worker terem criado o schema; sem isso a primeira consulta falha
+    # com "relation matriculas does not exist". create_all e idempotente,
+    # entao chamar de novo aqui (alem da API/worker) e seguro.
+    criar_schema()
     produtor = ProdutorEventos(settings.kafka_bootstrap_servers)
 
     logger.info("simulador_iniciado", topico=settings.kafka_topico_eventos)
